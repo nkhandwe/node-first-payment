@@ -6,7 +6,7 @@ const stripe = require("stripe")(
 );
 app.use(bodyParser.json());
 
-const port = 3000;
+const port = 3002;
 let customerId;
 
 app.listen(port, () => console.log(`Hello word  listening on port ${port}!`));
