@@ -6,25 +6,25 @@ const stripe = require("stripe")(
 );
 app.use(bodyParser.json());
 
-const port = 3002;
+const port = 5000;
 let customerId;
 
-app.listen(port, () => console.log(`Hello word  listening on port ${port}!`));
+app.post("/", async (req, res) => {
+  res.send('Server Is Running')
+})
 
-try {
-} catch (error) {}
 app.post("/payment-sheet", async (req, res) => {
   // Use an existing Customer ID if this is a returning customer.
   try {
     let customerId;
     const { amount, currency, email } = req.body;
     console.log(amount, currency, email);
-
+    
     const customerList = await stripe.customers.list({
       email: email,
       limit: 1,
     });
-
+    
     //Checks the if the customer exists, if not creates a new customer
     if (customerList.data.length !== 0) {
       customerId = customerList.data[0].id;
@@ -34,31 +34,33 @@ app.post("/payment-sheet", async (req, res) => {
       });
       customerId = customer.id;
     }
-
+    
     // //   const customer = await stripe.customers.create();
     const ephemeralKey = await stripe.ephemeralKeys.create(
       { customer: customerId },
       { apiVersion: "2022-11-15" }
-    );
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: amount,
-      currency: currency,
-      customer: customerId,
-      payment_method_types: ["card"],
-    });
-
-    res
+      );
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: amount,
+        currency: currency,
+        customer: customerId,
+        payment_method_types: ["card"],
+      });
+      
+      res
       .json({
         id:paymentIntent.id,
         paymentIntent: paymentIntent.client_secret,
         ephemeralKey: ephemeralKey.secret,
         customer: customerId,
-
+        
       }).status(200)
       
-  } catch (error) {
+    } catch (error) {
       res.json({
         error:error
       }).status(400)
-  }
-});
+    }
+  });
+  
+  app.listen(port, () => console.log(`Hello word  listening on port ${port}!`));
